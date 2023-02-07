@@ -8,7 +8,7 @@ export const generatePayloadFromToken = (token) => {
 }
 
 export const generateTokenFromPayload = (payload) => {
-    const salt = process.env.TOKEN_SECRET || 'secret'
+    const salt = process.env.JWT_SECRET || 'secret'
     const token = jwt.sign(payload, salt)
     return token;
 }

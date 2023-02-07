@@ -1,33 +1,30 @@
 import Joi from "joi"
 import {
-    generateTokenFromPayload,
     passwordToHash,
-    compareBcryptPassword
-
 } from "../utils/helper.utils.js";
 import Order from "../models/order.model.js";
 
-
-export const signUp = async (req, res) => {
+// create order controller - protected route
+export const createOrder = async (req, res) => {
     //collect user data
-    const { full_name, email, password } = req.body
+    const { price, order_status } = req.body
     // validate user input
     const schema = Joi.object().keys({
-        full_name: Joi.string().required(),
-        email: Joi.string().required(),
-        password: Joi.string().required()
+        price: Joi.number().precision(2).required(),
+        order_status: Joi.string(),
     })
 
-    const { error } = schema.validate({ full_name, email, password })
+    const { error } = schema.validate({})
 
     if (error) {
         return res.status(400).json({
             message: error.message
         })
     }
+    /////////////////////////////////////////////////////////
     //check if user exit
     try {
-        const oldUser = await Customer.findOne({ where: { email: email } })
+        const oldUser = await Order.findOne({ where: { email: email } })
         if (oldUser) {
             return res.status(400).json({ message: "User alreay exist!" })
         }
@@ -49,8 +46,9 @@ export const signUp = async (req, res) => {
     } catch (error) {
         console.log(error)
     }
+}
 
-
-    //generate token
-
+//update order Controller
+export const updateOrder = async (req, res) => {
+    return res.status(200).json({ message: "Hello order!" })
 }

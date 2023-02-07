@@ -17,7 +17,7 @@ export const signUp = async (req, res) => {
     // validate user input
     const schema = Joi.object().keys({
         full_name: Joi.string().required(),
-        email: Joi.string().required(),
+        email: Joi.string().email().required(),
         password: Joi.string().required()
     })
 
@@ -44,22 +44,63 @@ export const signUp = async (req, res) => {
             password: hashedpassword
         })
 
+        //generate token
+        const token = generateTokenFromPayload(user.id)
+
         return res.status(201).json({
             id: user.id,
             full_name: user.full_name,
             email: user.email,
+            token
         })
     } catch (error) {
-        console.log(error)
+        return res.status(400).json({ message: error.message })
     }
-
-
-    //generate token
 
 }
 
 //signin controller
-export const signIn = (req, res) => {
+export const signIn = async (req, res) => {
     //collect user data
-    res.send("you are signin!")
+    const { email, password } = req.body
+    //validate user data
+    const schema = Joi.object().keys({
+        email: Joi.string().email().required(),
+        password: Joi.string().required()
+    })
+
+    const { error } = schema.validate({ email, password })
+    if (error) {
+        return res.status(400).json({
+            message: error.message
+        })
+    }
+
+    //check if user exist
+    try {
+        const user = await Customer.findOne({ where: { email: email } })
+        if (!user) {
+            return res.status(400).json({
+                message: "User doesn't exist!"
+            })
+        }
+
+        // validate user password
+        const passwordCorrect = compareBcryptPassword(password, user.password)
+        if (!passwordCorrect) {
+            res.status(400).json({
+                message: "Invalid User Credentials!"
+            })
+        }
+
+        return res.status(200).json({
+            id: user.id,
+            full_name: user.full_name,
+            email: user.email,
+            token: generateTokenFromPayload(user.id)
+
+        })
+    } catch (error) {
+        return res.status(400).json({ message: error.message })
+    }
 }
