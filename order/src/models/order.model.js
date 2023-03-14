@@ -11,6 +11,6 @@ const Order = sequelize.define("order", {
 })
 
 //sync database
-// sequelize.sync()
+sequelize.sync()
 
 export default Order

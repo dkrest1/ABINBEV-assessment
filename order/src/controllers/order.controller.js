@@ -21,7 +21,7 @@ export const createOrder = async (req, res) => {
             message: error.message
         })
     }
-    /////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////
     //check if user exit
     try {
         const oldUser = await Order.findOne({ where: { email: email } })

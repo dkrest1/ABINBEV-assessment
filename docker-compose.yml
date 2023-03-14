@@ -1,0 +1,87 @@
+# version of docker
+version: "3.8"
+# services
+services:
+  # Zookeeper service
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - 2181:2181
+  # kafka service
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - 9092:9092
+    environment:
+      - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+    volumes:
+      - ./db-data/kafka:/var/lib/kafka
+  # mysql customer service
+  mysqldb1:
+    container_name: app-db-customer
+    image: mysql:5.7.24
+    restart: always
+    env_file: ../customer/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_USER: $DB_USER
+    ports:
+      - 3306:3306
+    command: --character-set-server=utf8
+    volumes:
+      - ./db-data/mysql1:/var/lib/mysql
+  #mysql order service
+  mysqldb2:
+    container_name: app-db-order
+    image: mysql:5.7.24
+    restart: always
+    env_file: ../order/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_USER: $DB_USER
+    ports:
+      - 3307:3306
+    command: --character-set-server=utf8
+    volumes:
+      - ./db-data/mysql2:/var/lib/mysql
+  #customer services
+  customer:
+    container_name: customer
+    build: ./customer
+    image: customer
+    ports:
+      - 8080:8080
+    environment:
+      - KAFKA_BOOTSRAP_SERVERS=kafka:9092
+      - KAFKA_TOPIC=topic1
+    depends_on:
+      - mysqldb1
+      - kafka
+    volumes:
+      - ./customer:/home/app
+    stdin_open: true
+    tty: true
+  #order services
+  order:
+    container_name: order
+    build: ./order
+    image: order
+    ports:
+      - 8081:8081
+    environment:
+      - KAFKA_BOOTSRAP_SERVERS=kafka:9092
+      - KAFKA_TOPIC=topic1
+    depends_on:
+      - mysqldb2
+      - kafka
+    volumes:
+      - ./order:/home/app
+    stdin_open: true
+    tty: true
+volumes:
+  db-data:

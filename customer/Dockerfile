@@ -8,7 +8,7 @@ WORKDIR /home/app
 COPY package*.json ./
 # install all dependecies
 RUN npm install
-#copy the source cold
+#copy the source code
 COPY . .
 #expose the port 
 EXPOSE 8080
